@@ -24,7 +24,7 @@ export default function ConfirmPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-white max-w-md mx-auto">
       {/* Top Bar */}
       <div className="flex items-center border-b px-4 py-3">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>

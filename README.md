@@ -4,9 +4,12 @@ A demo app for sharing parking spots, built for a hackathon. Users can search fo
 
 ## Features
 
-- **4 Screen Flow:**
-  - Search: Enter location and time to find parking
-  - Map View: See available spots on Google Maps with pricing
+- **Mobile-First Design:**
+  - Max-width 448px (md breakpoint) for mobile-optimized experience
+  - Centered on desktop screens
+
+- **3 Screen Flow:**
+  - Home/Map: See available spots on Google Maps with search bar on top
   - Spot Details: View detailed information about a parking spot
   - Confirm Booking: Review and confirm your reservation
 
@@ -43,13 +46,14 @@ A demo app for sharing parking spots, built for a hackathon. Users can search fo
 
 ## Usage
 
-1. Start on the Search screen
-2. Enter a location (e.g., "Memorial Union")
-3. Adjust the date/time if needed
-4. Click "Search" to see available spots on the map
-5. Click on a spot card to view details
-6. Click "Reserve spot" to proceed to confirmation
-7. Review and confirm your booking
+1. Start on the Home/Map screen showing all available spots
+2. Click the search bar at the top to filter by location and time
+3. Enter a location (e.g., "Memorial Union")
+4. Adjust the date/time if needed
+5. Click "Search" to filter spots on the map
+6. Click on a spot card in the bottom carousel to view details
+7. Click "Reserve spot" to proceed to confirmation
+8. Review and confirm your booking
 
 ## Demo Data
 
@@ -66,10 +70,9 @@ All data is hardcoded in `lib/mockData.ts` for demo purposes.
 
 ```
 app/
-├── page.tsx              # Screen 1: Search
-├── map/page.tsx          # Screen 2: Map + Results
-├── spot/[id]/page.tsx    # Screen 3: Spot Details
-└── confirm/page.tsx      # Screen 4: Review & Confirm
+├── page.tsx              # Home: Map + Search (merged)
+├── spot/[id]/page.tsx    # Spot Details
+└── confirm/page.tsx      # Review & Confirm
 
 lib/
 ├── types.ts              # TypeScript interfaces
