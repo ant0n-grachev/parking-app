@@ -162,24 +162,23 @@ export default function HomePage() {
                 }`}
                 onClick={() => handleCardClick(spot)}
               >
-                <div className="flex gap-3 p-3">
-                  {/* Placeholder */}
-                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-green-400 to-blue-500">
-                  </div>
-
+                <div className="p-3">
                   {/* Content */}
-                  <div className="flex flex-1 flex-col justify-between">
+                  <div className="flex flex-col gap-2">
                     <div>
                       <div className="flex items-start justify-between">
-                        <div className="font-semibold text-sm leading-tight">
-                          {spot.address}
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-1"></div>
+                          <div className="font-semibold text-sm leading-tight">
+                            {spot.address}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground flex-shrink-0 ml-2">
                           <MapPin className="h-3 w-3" />
                           {spot.walkingDistance} min
                         </div>
                       </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
+                      <div className="mt-0.5 text-xs text-muted-foreground ml-4">
                         {spot.name}
                       </div>
                     </div>
