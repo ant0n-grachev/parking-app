@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { ChevronLeft, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useApp } from "@/lib/context/AppContext";
 import { mockSpots } from "@/lib/mockData";
 import { format } from "date-fns";
 import { ParkingSpot } from "@/lib/types";
+import { BottomNav } from "@/components/BottomNav";
 
 export default function MapPage() {
   const router = useRouter();
@@ -66,7 +67,7 @@ export default function MapPage() {
                 <div
                   className={`rounded-full px-2.5 py-1 text-sm font-semibold shadow-lg ${
                     selectedSpotId === spot.id
-                      ? "bg-green-600 text-white"
+                      ? "bg-blue-600 text-white"
                       : "bg-white text-gray-900"
                   }`}
                 >
@@ -85,19 +86,19 @@ export default function MapPage() {
           onClick={() => router.push("/")}
         >
           <div className="flex items-center gap-3">
-            <ChevronLeft className="h-5 w-5" />
             <div className="text-sm">
               {searchParams && (
                 <>
                   <span className="font-medium">
-                    {format(searchParams.from, "MMM d, h:mm a")} -{" "}
-                    {format(searchParams.to, "h:mm a")}
+                    Now · Nearby
                   </span>
-                  <span className="text-muted-foreground"> · {searchParams.location}</span>
                 </>
               )}
             </div>
           </div>
+          <Button variant="ghost" size="sm" className="text-blue-600 font-medium">
+            List
+          </Button>
         </Card>
       </div>
 
@@ -105,7 +106,7 @@ export default function MapPage() {
       <div className="absolute left-1/2 top-20 -translate-x-1/2">
         <Button
           variant="secondary"
-          className="rounded-full shadow-lg"
+          className="rounded-full bg-gray-800 text-white shadow-lg hover:bg-gray-900"
           size="sm"
         >
           Search this area
@@ -113,60 +114,66 @@ export default function MapPage() {
       </div>
 
       {/* Locate Me Button */}
-      <div className="absolute bottom-48 right-4">
+      <div className="absolute bottom-32 right-4">
         <Button
           variant="secondary"
           size="icon"
-          className="h-12 w-12 rounded-full shadow-lg"
+          className="h-12 w-12 rounded-full bg-white shadow-lg hover:bg-gray-50"
         >
           <Navigation className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Bottom Sheet - Horizontal Carousel */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/20 to-transparent pb-8 pt-20">
+      <div className="absolute bottom-16 left-0 right-0 bg-gradient-to-t from-black/5 to-transparent pb-4 pt-16">
         <div className="overflow-x-auto px-4">
           <div className="flex gap-3 pb-4">
             {filteredSpots.map((spot) => (
               <Card
                 key={spot.id}
-                className={`min-w-[320px] cursor-pointer overflow-hidden transition-all ${
-                  selectedSpotId === spot.id ? "ring-2 ring-green-600" : ""
+                className={`min-w-[280px] cursor-pointer overflow-hidden bg-white transition-all ${
+                  selectedSpotId === spot.id ? "ring-2 ring-blue-600" : ""
                 }`}
                 onClick={() => handleCardClick(spot)}
               >
-                <div className="flex gap-3 p-3">
-                  {/* Placeholder */}
-                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-green-400 to-blue-500">
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between">
-                        <div className="font-semibold text-sm leading-tight">
-                          {spot.address}
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {spot.walkingDistance} min
-                        </div>
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
+                <div className="p-3">
+                  <div className="mb-2 flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold leading-tight">
                         {spot.name}
                       </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {spot.address}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="font-bold text-sm">
+                  </div>
+
+                  <div className="mb-2 flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <span>6 min</span>
+                    <span className="mx-1">·</span>
+                    <span>UW Madison</span>
+                  </div>
+
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <div className="font-bold text-base">
                         ${calculateTotal(spot).toFixed(2)} total
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {searchParams &&
-                          format(searchParams.from, "h:mm")}
-                        -
-                        {searchParams &&
-                          format(searchParams.to, "h:mm a")}
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          ⚡ {spot.features.includes("EV charger") ? "67%" : "N/A"}
+                        </span>
+                        <span>🚗 A</span>
                       </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {[15, 16, 17, 18, 19, 20, 21, 22].map((hour) => (
+                        <div
+                          key={hour}
+                          className="h-6 w-1.5 rounded-full bg-blue-600"
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -175,6 +182,9 @@ export default function MapPage() {
           </div>
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }

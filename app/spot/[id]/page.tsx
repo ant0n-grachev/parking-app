@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useApp } from "@/lib/context/AppContext";
 import { mockSpots } from "@/lib/mockData";
 import { format, differenceInHours } from "date-fns";
+import { APIProvider, Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 
 export default function SpotDetailsPage() {
   const router = useRouter();
@@ -57,104 +58,137 @@ export default function SpotDetailsPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon">
-          <Heart className="h-5 w-5" />
-        </Button>
       </div>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
-        {/* Header Placeholder */}
-        <div className="relative h-64 w-full bg-gradient-to-br from-green-400 to-blue-500">
+        {/* Time Selection */}
+        <div className="border-b p-4">
+          <div className="mb-3 text-sm text-muted-foreground">
+            Availability for {format(new Date(), "MMM d")}
+          </div>
+          <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
+            {todayAvailability?.timeBlocks.slice(15, 24).map((block) => {
+              const isSelected =
+                searchParams &&
+                block.hour >= searchParams.from.getHours() &&
+                block.hour < searchParams.to.getHours();
+
+              return (
+                <div
+                  key={block.hour}
+                  className={`flex min-w-[44px] flex-col items-center justify-center rounded-lg border-2 px-3 py-2 ${
+                    isSelected
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : block.available
+                      ? "border-gray-300 bg-white text-gray-900"
+                      : "border-gray-200 bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  <div className="text-sm font-medium">
+                    {block.hour % 12 || 12} {block.hour < 12 ? "PM" : "PM"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pick up / Drop off times */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-base">Pick up</span>
+              <span className="font-medium text-blue-600">
+                {searchParams && format(searchParams.from, "EEEE, h:mm a")}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-base">Drop off</span>
+              <span className="font-medium text-blue-600">
+                {searchParams && format(searchParams.to, "EEEE, h:mm a")}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Main Info */}
-        <div className="space-y-6 p-4">
-          {/* Name and Location */}
-          <div>
-            <h1 className="text-xl font-bold">{spot.name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {spot.address} · {spot.walkingDistance} min walk
-            </p>
+        {/* Location Details Section */}
+        <div className="p-4">
+          <h2 className="mb-3 text-xl font-bold">Location details</h2>
+
+          {/* Map */}
+          <div className="mb-4 h-48 overflow-hidden rounded-lg">
+            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
+              <Map
+                mapId="parkshare-spot-map"
+                defaultCenter={{ lat: spot.lat, lng: spot.lng }}
+                defaultZoom={16}
+                disableDefaultUI
+                className="h-full w-full"
+              >
+                <AdvancedMarker position={{ lat: spot.lat, lng: spot.lng }}>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white shadow-lg">
+                    P
+                  </div>
+                </AdvancedMarker>
+              </Map>
+            </APIProvider>
           </div>
 
-          {/* Feature Pills */}
-          <div className="flex flex-wrap gap-2">
-            {spot.features.map((feature) => (
-              <Badge key={feature} variant="secondary">
-                {feature}
-              </Badge>
+          {/* Location Name */}
+          <h3 className="mb-2 text-lg font-bold">{spot.name}</h3>
+          <p className="mb-4 text-base text-muted-foreground">
+            {spot.instructions}
+          </p>
+
+          {/* Photo Thumbnails */}
+          <div className="mb-6 flex gap-2 overflow-x-auto">
+            {[1, 2, 3, 4].map((idx) => (
+              <div
+                key={idx}
+                className="relative h-20 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-blue-400 to-blue-600"
+              >
+                {idx === 4 && (
+                  <div className="flex h-full w-full items-center justify-center bg-black/50 text-xl font-bold text-white">
+                    +1
+                  </div>
+                )}
+              </div>
             ))}
           </div>
+        </div>
 
-          <Separator />
-
-          {/* Availability Section */}
-          <div>
-            <h2 className="mb-3 font-semibold">Today's availability</h2>
-            <div className="mb-3 flex gap-1 overflow-x-auto pb-2">
-              {todayAvailability?.timeBlocks.map((block) => {
-                const isSelected =
-                  searchParams &&
-                  block.hour >= searchParams.from.getHours() &&
-                  block.hour < searchParams.to.getHours();
-
-                return (
-                  <div
-                    key={block.hour}
-                    className={`flex h-12 min-w-[44px] flex-col items-center justify-center rounded ${
-                      isSelected
-                        ? "bg-green-600 text-white"
-                        : block.available
-                        ? "bg-green-100 text-green-900"
-                        : "bg-gray-100 text-gray-400"
-                    }`}
-                  >
-                    <div className="text-xs font-medium">
-                      {block.hour % 12 || 12}
-                      {block.hour < 12 ? "a" : "p"}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {searchParams && (
-              <p className="text-sm text-muted-foreground">
-                {format(searchParams.from, "h:mm a")} -{" "}
-                {format(searchParams.to, "h:mm a")} · {hours} hour
-                {hours !== 1 ? "s" : ""}
-              </p>
-            )}
+        {/* Features Section */}
+        <div className="border-t p-4">
+          <h2 className="mb-4 text-xl font-bold">Features</h2>
+          <div className="space-y-3">
+            {spot.features.map((feature) => (
+              <div key={feature} className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                  <Info className="h-5 w-5 text-gray-600" />
+                </div>
+                <span className="text-base">{feature}</span>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <Separator />
-
-          {/* Price Section */}
-          <Card className="p-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold">
-                ${totalCost.toFixed(2)}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                total for this stay
-              </span>
+        {/* Walking Distance */}
+        <div className="border-t p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              <span className="text-base">{spot.address}</span>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              ${spot.pricePerHour.toFixed(2)} per hour
-            </p>
-          </Card>
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <span className="text-lg">🚶</span>
+              {spot.walkingDistance} min
+            </span>
+          </div>
+        </div>
 
-          <Separator />
-
-          {/* Location Details */}
-          <div>
-            <h2 className="mb-3 font-semibold">Location details</h2>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              {spot.instructions.split(". ").map((instruction, idx) => (
-                <p key={idx}>{instruction.trim()}.</p>
-              ))}
-            </div>
+        {/* Price Summary */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xl font-bold">${totalCost.toFixed(2)} total</span>
           </div>
         </div>
       </div>
@@ -163,9 +197,9 @@ export default function SpotDetailsPage() {
       <div className="fixed bottom-0 left-0 right-0 border-t bg-white p-4">
         <Button
           onClick={handleReserve}
-          className="w-full rounded-full bg-green-600 py-6 text-base font-semibold hover:bg-green-700"
+          className="w-full rounded-full bg-blue-600 py-6 text-base font-semibold hover:bg-blue-700"
         >
-          Reserve spot
+          Next
         </Button>
       </div>
     </div>
