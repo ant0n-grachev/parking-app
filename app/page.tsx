@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { Search, MapPin, Navigation, X, ChevronRight, ChevronDown } from "lucide-react";
@@ -29,6 +29,20 @@ export default function HomePage() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [fromTimePickerOpen, setFromTimePickerOpen] = useState(false);
   const [toTimePickerOpen, setToTimePickerOpen] = useState(false);
+
+  // Refs for scrolling to cards
+  const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Scroll to selected card when marker is clicked
+  useEffect(() => {
+    if (selectedSpotId && cardRefs.current[selectedSpotId]) {
+      cardRefs.current[selectedSpotId]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [selectedSpotId]);
 
   // Filter spots based on search params
   const filteredSpots = searchParams
@@ -151,12 +165,15 @@ export default function HomePage() {
       </div>
 
       {/* Bottom Sheet - Horizontal Carousel */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/20 to-transparent pb-8 pt-20">
-        <div className="overflow-x-auto px-4">
-          <div className="flex gap-3 pb-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/20 to-transparent pb-4 pt-20">
+        <div className="overflow-x-auto px-4 scrollbar-hide">
+          <div className="flex gap-3">
             {filteredSpots.map((spot) => (
               <Card
                 key={spot.id}
+                ref={(el) => {
+                  cardRefs.current[spot.id] = el;
+                }}
                 className={`min-w-[320px] cursor-pointer overflow-hidden transition-all ${
                   selectedSpotId === spot.id ? "ring-2 ring-green-600" : ""
                 }`}
